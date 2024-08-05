@@ -361,19 +361,6 @@ namespace ImportWC
 						HasExtradata = true;
 					}
 					break;
-
-				case "Sy1":
-				case "Sy2":
-				case "Sy3":
-				case "Sy4":
-					// Syn is ???
-					if (double.TryParse(val, out double sy))
-					{
-						var ind = int.Parse(key[2..]);
-						//						XXX[ind - 1] = sy;
-						HasExtradata = true;
-					}
-					break;
 			}
 		}
 
