@@ -222,51 +222,51 @@ namespace ImportWC
 
 			IniFile ini = new IniFile("wc_config.ini");
 
-			WcDataPath = ini.GetValue("wcdata", "path", "");
+			WcDataPath = ini.GetValue("data", "path", "");
 			if (WcDataPath == "")
 			{
-				Program.LogMessage("Failed to find wcdata path in wc_config.ini");
-				Console.WriteLine("Failed to find wcdata path in wc_config.ini");
+				Program.LogMessage("Failed to find data path in wc_config.ini");
+				Console.WriteLine("Failed to find data path in wc_config.ini");
 				Environment.Exit(1);
 			}
 
 			WcConfigTemp = ini.GetValue("units", "temperature", "").ToLower();
 			if (WcConfigTemp == "" || (WcConfigTemp != "c" && WcConfigTemp != "f"))
 			{
-				Program.LogMessage("Failed to find units temp in wc_config.ini");
-				Console.WriteLine("Failed to find units temp in wc_config.ini");
+				Program.LogMessage("Failed to find temperature units in wc_config.ini");
+				Console.WriteLine("Failed to find temperature units in wc_config.ini");
 				Environment.Exit(1);
 			}
 
 			WcConfigDew = ini.GetValue("units", "dewpoint", "").ToLower();
 			if (WcConfigDew == "" || (WcConfigDew != "c" && WcConfigDew != "f"))
 			{
-				Program.LogMessage("Failed to find units dewpoint in wc_config.ini");
-				Console.WriteLine("Failed to find units dewpoint in wc_config.ini");
+				Program.LogMessage("Failed to find dewpoint units in wc_config.ini");
+				Console.WriteLine("Failed to find dewpoint units in wc_config.ini");
 				Environment.Exit(1);
 			}
 
 			WcConfigPress = ini.GetValue("units", "pressure", "").ToLower();
 			if (WcConfigPress == "" || (WcConfigPress != "inhg" && WcConfigPress != "mb" && WcConfigPress != "hpa"))
 			{
-				Program.LogMessage("Failed to find units pressure in wc_config.ini");
-				Console.WriteLine("Failed to find units pressure in wc_config.ini");
+				Program.LogMessage("Failed to find pressure units in wc_config.ini");
+				Console.WriteLine("Failed to find pressure units in wc_config.ini");
 				Environment.Exit(1);
 			}
 
 			WcConfigWind = ini.GetValue("units", "wind", "");
 			if (WcConfigWind == "" || (WcConfigWind != "kph" && WcConfigWind != "mps" && WcConfigWind != "mph" && WcConfigWind != "knots"))
 			{
-				Program.LogMessage("Failed to find units wind in wc_config.ini");
-				Console.WriteLine("Failed to find units wind in wc_config.ini");
+				Program.LogMessage("Failed to find wind units in wc_config.ini");
+				Console.WriteLine("Failed to find wind units in wc_config.ini");
 				Environment.Exit(1);
 			}
 
 			WcConfigRain = ini.GetValue("units", "rain", "");
 			if (WcConfigRain == "" || (WcConfigRain != "mm" && WcConfigRain != "in"))
 			{
-				Program.LogMessage("Failed to find units rain in wc_config.ini");
-				Console.WriteLine("Failed to find units rain in wc_config.ini");
+				Program.LogMessage("Failed to find rain units in wc_config.ini");
+				Console.WriteLine("Failed to find rain units in wc_config.ini");
 				Environment.Exit(1);
 			}
 		}

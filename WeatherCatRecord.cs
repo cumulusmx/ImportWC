@@ -61,7 +61,15 @@ namespace ImportWC
 			// ignore the first entry = record number
 			for (var i = 1; i < arr.Length; i++)
 			{
-				ProcessPair(arr[i].Split(':'));
+				try
+				{
+					ProcessPair(arr[i].Split(':'));
+				}
+				catch(Exception ex)
+				{
+					Program.LogConsole($"Error at entry={arr[0]} field={i} year={year} month={month}: {ex.Message}", ConsoleColor.Red);
+					Program.LogMessage($"Error at entry={arr[0]} field={i} year={year} month={month}: {ex.Message}");
+				}
 			}
 		}
 
