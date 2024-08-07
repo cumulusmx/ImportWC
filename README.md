@@ -37,7 +37,7 @@ StartDateIso=YYYY-MM-DD
 
 **_NOTE_**_: You must retain the same date format_.
 
-However, if ImportWLK finds that the first date in your WLK files is earlier than the Records Began Date, it will use that date instead.
+However, if ImportWC finds that the first date in your .cat files is earlier than the Records Began Date, it will use that date instead.
 
 ImportWC also uses your Cumulus.ini file to determine things like what units you use for your measurements. So make sure you have all this configured correctly in Cumulus MX before importing data.
 
@@ -45,7 +45,7 @@ ImportWC also uses your Cumulus.ini file to determine things like what units you
 
 ## Running ImportWC
 ### Windows
-Just run the ImportWLK.exe from your root Cumulus MX folder
+Just run the ImportWC.exe from your root Cumulus MX folder
 > ImportWC.exe
 ### Linux/MacOS
 Run via the dotnet executable after first setting the path to the Cumulus MX root folder
@@ -53,7 +53,7 @@ Run via the dotnet executable after first setting the path to the Cumulus MX roo
 
 
 ## Post Conversion Actions
-After running the ImportWLK convertor, you will need to perform some additional tasks to complete the migration:
+After running the ImportWC convertor, you will need to perform some additional tasks to complete the migration:
 
 ### Run CreateMissing
 The ImportWC utility does not add any data to your day file when it creates the monthly log files. You must run the CreateMissing utility to create the day file entries.
