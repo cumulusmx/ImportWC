@@ -1,4 +1,6 @@
 ﻿
+using System.Globalization;
+
 namespace ImportWC
 {
 	internal class WeatherCatRecord
@@ -134,7 +136,7 @@ namespace ImportWC
 
 				case "T":
 					// T is outside temperature
-					if (double.TryParse(val, out double temp))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double temp))
 					{
 						OutsideTemp = DoTemp(temp);
 					}
@@ -142,7 +144,7 @@ namespace ImportWC
 
 				case "Ti":
 					// Ti is internal temperature
-					if (double.TryParse(val, out double intemp))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double intemp))
 					{
 						InsideTemp = DoTemp(intemp);
 					}
@@ -150,7 +152,7 @@ namespace ImportWC
 
 				case "D":
 					// D is dew point
-					if (double.TryParse(val, out double dp))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double dp))
 					{
 						Dewpoint = DoDewPt(dp);
 					}
@@ -158,7 +160,7 @@ namespace ImportWC
 
 				case "Pr":
 					// Pr is barometric pressure
-					if (double.TryParse(val, out double pr))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double pr))
 					{
 						Baro = DoPress(pr);
 					}
@@ -166,7 +168,7 @@ namespace ImportWC
 
 				case "W":
 					// W is wind speed
-					if (double.TryParse(val, out double ws))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double ws))
 					{
 						WindSpeed = DoWind(ws);
 					}
@@ -182,7 +184,7 @@ namespace ImportWC
 
 				case "Wc":
 					// Wc is wind chill
-					if (double.TryParse(val, out double wc))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double wc))
 					{
 						WindChill = DoTemp(wc);
 					}
@@ -190,7 +192,7 @@ namespace ImportWC
 
 				case "Wg":
 					// Wg is wind gust
-					if (double.TryParse(val, out double wg))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double wg))
 					{
 						WindGust = DoWind(wg);
 					}
@@ -198,7 +200,7 @@ namespace ImportWC
 
 				case "Ph":
 					// Ph is hourly precipitation
-					if (double.TryParse(val, out double ph))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double ph))
 					{
 						RainHour = DoRain(ph);
 					}
@@ -206,7 +208,7 @@ namespace ImportWC
 
 				case "P":
 					// P is total precipitation
-					if (double.TryParse(val, out double p))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double p))
 					{
 						RainDay = DoRain(p);
 					}
@@ -214,7 +216,7 @@ namespace ImportWC
 
 				case "Pm":
 					// Pm is monthly precipitation
-					if (double.TryParse(val, out double pm))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double pm))
 					{
 						RainMonth = DoRain(pm);
 					}
@@ -222,7 +224,7 @@ namespace ImportWC
 
 				case "Py":
 					// Py is annual precipitation
-					if (double.TryParse(val, out double py))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double py))
 					{
 						RainYear = DoRain(py);
 					}
@@ -254,7 +256,7 @@ namespace ImportWC
 
 				case "U":
 					// U is uv
-					if (double.TryParse(val, out double uv))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double uv))
 					{
 						UV = uv;
 					}
@@ -262,7 +264,7 @@ namespace ImportWC
 
 				case "Ed":
 					// Ed is daily evapotranspiration
-					if (double.TryParse(val, out double ed))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double ed))
 					{
 						ET = ed;
 					}
@@ -270,7 +272,7 @@ namespace ImportWC
 
 				case "Em":
 					// Em is monthly evapotranspiration
-					if (double.TryParse(val, out double em))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double em))
 					{
 						ETMonth = em;
 					}
@@ -278,7 +280,7 @@ namespace ImportWC
 
 				case "Ey":
 					// Ey is annual evapotranspiration
-					if (double.TryParse(val, out double ey))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double ey))
 					{
 						ETYear = ey;
 					}
@@ -293,7 +295,7 @@ namespace ImportWC
 				case "T7":
 				case "T8":
 					// Tn is temperature
-					if (double.TryParse(val, out double tempn))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double tempn))
 					{
 						var ind = int.Parse(key[1..]);
 						ExtraTemp[ind - 1] = DoTemp(tempn);
@@ -336,7 +338,7 @@ namespace ImportWC
 				case "St3":
 				case "St4":
 					// Stn is soil temperature
-					if (double.TryParse(val, out double st))
+					if (double.TryParse(val, CultureInfo.InvariantCulture, out double st))
 					{
 						var ind = int.Parse(key[2..]);
 						SoilTemp[ind - 1] = DoTemp(st);
