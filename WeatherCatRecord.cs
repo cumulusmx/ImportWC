@@ -41,9 +41,11 @@ namespace ImportWC
 		public double?[] SoilTemp { get; private set; } = new double?[4];
 		public int?[] LeafWet { get; private set; } = new int?[4];
 		public int?[] CO2 { get; private set; } = new int?[4];
+		public double?[] Synth { get; private set; } = new double?[10];
 
 
-		public bool HasExtradata { get; private set; }
+		public bool HasExtraData { get; private set; }
+		public bool HasSynthData { get; private set; }
 
 		public WeatherCatRecord(int year, int month, string entry)
 		{
@@ -299,7 +301,7 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[1..]);
 						ExtraTemp[ind - 1] = DoTemp(tempn);
-						HasExtradata = true;
+						HasExtraData = true;
 					}
 					break;
 
@@ -316,7 +318,7 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[1..]);
 						ExtraHum[ind - 1] = humn;
-						HasExtradata = true;
+						HasExtraData = true;
 					}
 					break;
 
@@ -329,7 +331,7 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[2..]);
 						SoilMoist[ind - 1] = sm;
-						HasExtradata = true;
+						HasExtraData = true;
 					}
 					break;
 
@@ -342,7 +344,7 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[2..]);
 						SoilTemp[ind - 1] = DoTemp(st);
-						HasExtradata = true;
+						HasExtraData = true;
 					}
 					break;
 
@@ -355,7 +357,7 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[2..]);
 						LeafWet[ind - 1] = lw;
-						HasExtradata = true;
+						HasExtraData = true;
 					}
 					break;
 
@@ -368,7 +370,25 @@ namespace ImportWC
 					{
 						var ind = int.Parse(key[3..]);
 						CO2[ind - 1] = co2;
-						HasExtradata = true;
+						HasExtraData = true;
+					}
+					break;
+
+				case "Sy1":
+				case "Sy2":
+				case "Sy3":
+				case "Sy4":
+				case "Sy5":
+				case "Sy6":
+				case "Sy7":
+				case "Sy8":
+				case "Sy9":
+				case "Sy10":
+					if (double.TryParse(val, out double sy))
+					{
+						var ind = int.Parse(key[2..]);
+						Synth[ind - 1] = sy;
+						HasSynthData = true;
 					}
 					break;
 			}

@@ -160,9 +160,14 @@ namespace ImportWC
 
 					LogFile.AddRecord(rec);
 
-					if (rec.HasExtradata)
+					if (rec.HasExtraData)
 					{
 						ExtraLogFile.AddRecord(rec);
+					}
+
+					if (rec.HasSynthData)
+					{
+						CustomLogFile.AddRecord(rec);
 					}
 				}
 
@@ -177,6 +182,12 @@ namespace ImportWC
 				{
 					ExtraLogFile.WriteLogFile();
 					ExtraLogFile.Initialise();
+				}
+
+				if (CustomLogFile.RecordsCount > 0)
+				{
+					CustomLogFile.WriteLogFile();
+					CustomLogFile.Initialise();
 				}
 			}
 		}
