@@ -118,14 +118,8 @@ namespace ImportWC
 			// Sythetic channel 1-10
 			for (int i = 0; i < 10; i++)
 			{
-				if (rec.Synth[i].HasValue)
-				{
-					sb.Append(rec.Synth[i].Value.ToString("F1", inv) + sep);
-				}
-				else
-				{
-					sb.Append(sep);
-				}
+				var v = rec.Synth[i] ?? -99999;
+				sb.Append((v > -99999 ? v.ToString("F1", inv) : string.Empty) + sep);
 			}
 
 			return sb.ToString();

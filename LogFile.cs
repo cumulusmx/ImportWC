@@ -10,6 +10,10 @@ namespace ImportWC
 
 		public static int RecordsCount { get => records.Count; }
 
+		public static double LastRainCounter { get => records.Last().Value.RainfallCounter; }
+
+		private static double startOfDayRainCounter = -999;
+
 
 		public static DateTime LastTimeStamp { get; set; }
 
@@ -21,11 +25,16 @@ namespace ImportWC
 
 		internal static void AddRecord(WeatherCatRecord rec)
 		{
+			if (!rec.RainYear.HasValue && LastTimeStamp.Date != rec.Timestamp.Date)
+			{
+				startOfDayRainCounter = rec.RainDay ?? 0;
+			}
+
 			LastTimeStamp = rec.Timestamp;
 
 			if (!records.TryGetValue(rec.Timestamp, out var value))
 			{
-				value = new LogFileRec() { LogTime = rec.Timestamp};
+				value = new LogFileRec() { LogTime = rec.Timestamp };
 				records.Add(rec.Timestamp, value);
 			}
 
@@ -39,12 +48,21 @@ namespace ImportWC
 			value.WindGust = rec.WindGust ?? 0;
 			value.WindBearing = rec.WindDir;
 
+			if (rec.RainYear.HasValue)
+			{
+				value.RainfallToday = rec.RainDay ?? 0;
+				value.RainfallCounter = rec.RainYear ?? 0;
+			}
+			else
+			{
+				value.RainfallToday = (rec.RainDay ?? 0) - startOfDayRainCounter;
+				value.RainfallCounter = rec.RainDay ?? 0;
+			}
+
 			value.RainfallRate = rec.RainRate ?? 0;
-			value.RainfallToday = rec.RainDay ?? 0;
+			value.RainSinceMidnight = value.RainfallToday;
 
 			value.Baro = rec.Baro ?? 0;
-
-			value.RainfallCounter = rec.RainYear ?? 0;
 
 			value.InsideTemp = rec.InsideTemp ?? 0;
 
@@ -62,7 +80,6 @@ namespace ImportWC
 
 			value.CurrentBearing = rec.WindDir;
 
-			value.RainSinceMidnight = rec.RainDay ?? 0;
 
 			if (rec.OutsideTemp.HasValue && rec.OutsideHumidity.HasValue)
 			{
@@ -204,39 +221,39 @@ namespace ImportWC
 			var sep = ",";
 
 			var sb = new StringBuilder(256);
-			sb.Append(rec.LogTime.ToString("dd/MM/yy", inv) + sep);
-			sb.Append(rec.LogTime.ToString("HH:mm", inv) + sep);
-			sb.Append(rec.Temperature.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.Humidity.ToString() + sep);
-			sb.Append(rec.Dewpoint.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.WindSpeed.ToString(Program.Cumulus.WindAvgFormat, inv) + sep);
-			sb.Append(rec.WindGust.ToString(Program.Cumulus.WindFormat, inv) + sep);
-			sb.Append(rec.WindBearing.ToString() + sep);
-			sb.Append(rec.RainfallRate.ToString(Program.Cumulus.RainFormat, inv) + sep);
-			sb.Append(rec.RainfallToday.ToString(Program.Cumulus.RainFormat, inv) + sep);
-			sb.Append(rec.Baro.ToString(Program.Cumulus.PressFormat, inv) + sep);
-			sb.Append(rec.RainfallCounter.ToString(Program.Cumulus.RainFormat, inv) + sep);
-			sb.Append(rec.InsideTemp.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.InsideHum.ToString() + sep);
-			sb.Append(rec.CurrentGust.ToString(Program.Cumulus.WindFormat, inv) + sep);
-			sb.Append(rec.WindChill.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.HeatIndex.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.UVI.ToString(Program.Cumulus.UVFormat, inv) + sep);
-			sb.Append(rec.SolarRad.ToString() + sep);
-			sb.Append(rec.ET.ToString(Program.Cumulus.ETFormat, inv) + sep);
-			sb.Append(rec.ETyear.ToString(Program.Cumulus.ETFormat, inv) + sep); // annual ET
-			sb.Append(rec.ApparentTemp.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.SolarMax.ToString() + sep);
-			sb.Append(rec.SunshineHours.ToString(Program.Cumulus.SunFormat, inv) + sep);
-			sb.Append(rec.WindBearing.ToString() + sep);
-			sb.Append(rec.RG11Rain.ToString(Program.Cumulus.RainFormat, inv) + sep);
-			sb.Append(rec.RainSinceMidnight.ToString(Program.Cumulus.RainFormat, inv) + sep);
-			sb.Append(rec.FeelsLike.ToString(Program.Cumulus.TempFormat, inv) + sep);
-			sb.Append(rec.Humidex.ToString(Program.Cumulus.TempFormat, inv));
+			sb.Append(rec.LogTime.ToString("dd/MM/yy", inv) + sep);                           // 0
+			sb.Append(rec.LogTime.ToString("HH:mm", inv) + sep);                              // 1
+			sb.Append(rec.Temperature.ToString(Program.Cumulus.TempFormat, inv) + sep);       // 2
+			sb.Append(rec.Humidity.ToString() + sep);                                         // 3
+			sb.Append(rec.Dewpoint.ToString(Program.Cumulus.TempFormat, inv) + sep);          // 4
+			sb.Append(rec.WindSpeed.ToString(Program.Cumulus.WindAvgFormat, inv) + sep);      // 5
+			sb.Append(rec.WindGust.ToString(Program.Cumulus.WindFormat, inv) + sep);          // 6
+			sb.Append(rec.WindBearing.ToString() + sep);                                      // 7
+			sb.Append(rec.RainfallRate.ToString(Program.Cumulus.RainFormat, inv) + sep);      // 8
+			sb.Append(rec.RainfallToday.ToString(Program.Cumulus.RainFormat, inv) + sep);     // 9
+			sb.Append(rec.Baro.ToString(Program.Cumulus.PressFormat, inv) + sep);             // 10
+			sb.Append(rec.RainfallCounter.ToString(Program.Cumulus.RainFormat, inv) + sep);   // 11
+			sb.Append(rec.InsideTemp.ToString(Program.Cumulus.TempFormat, inv) + sep);        // 12
+			sb.Append(rec.InsideHum.ToString() + sep);                                        // 13
+			sb.Append(rec.CurrentGust.ToString(Program.Cumulus.WindFormat, inv) + sep);       // 14
+			sb.Append(rec.WindChill.ToString(Program.Cumulus.TempFormat, inv) + sep);         // 15
+			sb.Append(rec.HeatIndex.ToString(Program.Cumulus.TempFormat, inv) + sep);         // 16
+			sb.Append(rec.UVI.ToString(Program.Cumulus.UVFormat, inv) + sep);                 // 17
+			sb.Append(rec.SolarRad.ToString() + sep);                                         // 18
+			sb.Append(rec.ET.ToString(Program.Cumulus.ETFormat, inv) + sep);                  // 19
+			sb.Append(rec.ETyear.ToString(Program.Cumulus.ETFormat, inv) + sep);              // annual ET
+			sb.Append(rec.ApparentTemp.ToString(Program.Cumulus.TempFormat, inv) + sep);      // 21
+			sb.Append(rec.SolarMax.ToString() + sep);                                         // 22
+			sb.Append(rec.SunshineHours.ToString(Program.Cumulus.SunFormat, inv) + sep);      // 23
+			sb.Append(rec.WindBearing.ToString() + sep);                                      // 24
+			sb.Append(rec.RG11Rain.ToString(Program.Cumulus.RainFormat, inv) + sep);          // 25
+			sb.Append(rec.RainSinceMidnight.ToString(Program.Cumulus.RainFormat, inv) + sep); // 26
+			sb.Append(rec.FeelsLike.ToString(Program.Cumulus.TempFormat, inv) + sep);         // 27
+			sb.Append(rec.Humidex.ToString(Program.Cumulus.TempFormat, inv));                 // 28
 
 			return sb.ToString();
 		}
-
+		
 		private static string GetLogFileName(DateTime thedate)
 		{
 			return  thedate.ToString("yyyyMM") + "log.txt";

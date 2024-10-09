@@ -5,20 +5,20 @@ namespace ImportWC
 {
 	static class Program
 	{
-		public static Cumulus Cumulus { get; set; }
-		public static string Location { get; set; }
+		public static  Cumulus Cumulus { get; set; } = new Cumulus();
+		public static string Location { get; set; } = string.Empty;
 
 		private static ConsoleColor defConsoleColour;
 
-		public static string WcDataPath { get; set; }
-		public static string WcConfigTemp { get; set; }
-		public static string WcConfigDew { get; set; }
-		public static string WcConfigWind { get; set; }
-		public static string WcConfigPress { get; set; }
-		public static string WcConfigRain { get; set; }
+		public static string WcDataPath { get; set; } = string.Empty;
+		public static string WcConfigTemp { get; set; } = string.Empty;
+		public static string WcConfigDew { get; set; } = string.Empty;
+		public static string WcConfigWind { get; set; } = string.Empty;
+		public static string WcConfigPress { get; set; } = string.Empty;
+		public static string WcConfigRain { get; set; } = string.Empty;
 
 
-		static void Main()
+		static int Main()
 		{
 			// Tell the user what is happening
 
@@ -43,9 +43,6 @@ namespace ImportWC
 
 			// get the location of the exe - we will assume this is in the Cumulus root folder
 			Location = AppDomain.CurrentDomain.BaseDirectory;
-
-			// Read the Cumulus.ini file
-			Cumulus = new Cumulus();
 
 			// Check meteo day
 			if (Cumulus.RolloverHour != 0)
@@ -85,6 +82,7 @@ namespace ImportWC
 
 			var year = 0;
 			var month = 0;
+			var rainCounter = 0.0;
 
 			foreach (var cat in wcList)
 			{
@@ -108,7 +106,9 @@ namespace ImportWC
 				// month is the first 1 or 2 characters of the filename followed by an underscore
 				// eg /wc/2024/5_WeatherCatData.cat
 
-				if (!int.TryParse(new DirectoryInfo(cat.FullName).Parent.Name, out year))
+				var name = new DirectoryInfo(cat.FullName);
+
+				if (name.Parent == null || !int.TryParse(name.Parent.Name, out year))
 				{
 					LogMessage($"Error parsing year from {cat.FullName}");
 					LogConsole($"Error parsing year from {cat.FullName}", ConsoleColor.Red);
@@ -126,10 +126,10 @@ namespace ImportWC
 					continue;
 				}
 
-				LogConsole($"Processing {cat.Name}...", ConsoleColor.Gray);
+				LogConsole($"Processing {year} {cat.Name}...", ConsoleColor.Gray);
 				LogMessage($"Processing {cat.FullName}...");
 
-				LogMessage($"  {cat.Name} contains {lines.Length} lines");
+				LogMessage($"  {year} {cat.Name} contains {lines.Length} lines");
 
 				var started = false;
 
@@ -174,6 +174,7 @@ namespace ImportWC
 				// Write out the log file
 				if (LogFile.RecordsCount > 0)
 				{
+					rainCounter += LogFile.LastRainCounter;
 					LogFile.WriteLogFile();
 					LogFile.Initialise();
 				}
@@ -190,6 +191,8 @@ namespace ImportWC
 					CustomLogFile.Initialise();
 				}
 			}
+
+			return 0;
 		}
 
 		public static void LogMessage(string message)
@@ -200,7 +203,7 @@ namespace ImportWC
 		public static void LogDebugMessage(string message)
 		{
 #if DEBUG
-			//Trace.TraceInformation(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message);
+			//Trace.TraceInformation(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff ") + message)
 #endif
 		}
 
@@ -224,8 +227,8 @@ namespace ImportWC
 		{
 			if (!System.IO.File.Exists(Program.Location + "wc_config.ini"))
 			{
-				Program.LogMessage("Failed to find wc_config.ini file!");
-				Console.WriteLine("Failed to find wc_config.ini file!");
+				Program.LogMessage($"Failed to find wc_config.ini file at {Program.Location}wc_config.ini");
+				Console.WriteLine($"Failed to find wc_config.ini file at {Program.Location}wc_config.ini");
 				Environment.Exit(1);
 			}
 
@@ -238,6 +241,14 @@ namespace ImportWC
 			{
 				Program.LogMessage("Failed to find data path in wc_config.ini");
 				Console.WriteLine("Failed to find data path in wc_config.ini");
+				Environment.Exit(1);
+			}
+
+			// Check if the data path exists
+			if (!Directory.Exists(WcDataPath))
+			{
+				Program.LogMessage($"The data path specified in wc_config.ini does not exist - {WcDataPath}");
+				Console.WriteLine($"The data path specified in wc_config.ini does not exist - {WcDataPath}");
 				Environment.Exit(1);
 			}
 

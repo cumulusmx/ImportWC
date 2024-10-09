@@ -1,5 +1,4 @@
-﻿
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace ImportWC
 {
@@ -20,17 +19,17 @@ namespace ImportWC
 		public double? RainHour { get; private set; }
 		public double? RainDay { get; private set; }
 		public double? RainMonth { get; private set; }
-		public double? RainYear { get; private set; }
+		public double? RainYear { get; set; }
+		public double? RainRate { get; private set; }
 		public int? OutsideHumidity { get; private set; }
 		public int? InsideHumidity { get; private set; }
 		public int? Solar { get; private set; }
 		public double? UV { get; private set; }
-		public double? Sunshine { get; private set; }
-		public double? RainRate { get; private set; }
-		public double? WindRun { get; private set; }
-		public double? WindAvg { get; private set; }
-		public double? TempTrend { get; private set; }
-		public double? WindTrend { get; private set; }
+		//public double? Sunshine { get; private set; }
+		//public double? WindRun { get; private set; }
+		//public double? WindAvg { get; private set; }
+		//public double? TempTrend { get; private set; }
+		//public double? WindTrend { get; private set; }
 		public double? ET { get; private set; }
 		public double? ETMonth { get; private set; }
 		public double? ETYear { get; private set; }
@@ -205,6 +204,8 @@ namespace ImportWC
 					if (double.TryParse(val, CultureInfo.InvariantCulture, out double ph))
 					{
 						RainHour = DoRain(ph);
+						// There is no rainfall rate in the WC files, so use the hourly value
+						RainRate = RainHour;
 					}
 					break;
 
