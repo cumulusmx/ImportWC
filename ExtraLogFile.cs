@@ -143,8 +143,8 @@ namespace ImportWC
 		public static string RecToCsv(KeyValuePair<DateTime, ExtraLogFileRec> keyval)
 		{
 			// Writes an entry to the n-minute extralogfile. Fields are comma-separated:
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2-11  Temperature 1-10
 			// 12-21 Humidity 1-10
 			// 22-31 Dew point 1-10
@@ -174,8 +174,8 @@ namespace ImportWC
 			var sep = ',';
 
 			var sb = new StringBuilder(256);
-			sb.Append(rec.LogTime.ToString("dd/MM/yy", inv) + sep);
-			sb.Append(rec.LogTime.ToString("HH:mm", inv) + sep);
+			sb.Append(rec.LogTime.ToString("dd/MM/yy HH:mm", inv) + sep);
+			sb.Append(new DateTimeOffset(rec.LogTime).ToUnixTimeSeconds() + sep);
 			// Extra Temp 1-10
 			for (int i = 0; i < 10; i++)
 			{
@@ -240,7 +240,7 @@ namespace ImportWC
 
 		private static string GetExtraLogFileName(DateTime thedate)
 		{
-			return "ExtraLog" + thedate.ToString("yyyyMM") + "log.txt";
+			return "ExtraLog" + thedate.ToString("yyyyMM") + ".txt";
 		}
 
 	}

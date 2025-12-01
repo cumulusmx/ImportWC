@@ -183,8 +183,8 @@ namespace ImportWC
 		public static string RecToCsv(KeyValuePair<DateTime, LogFileRec> keyval)
 		{
 			// Writes an entry to the n-minute log file. Fields are comma-separated:
-			// 0  Date in the form dd/mm/yy (the slash may be replaced by a dash in some cases)
-			// 1  Current time - hh:mm
+			// 0  Date in the form dd/mm/yy hh:mm
+			// 1  Unix Timestamp
 			// 2  Current temperature
 			// 3  Current humidity
 			// 4  Current dewpoint
@@ -221,8 +221,8 @@ namespace ImportWC
 			var sep = ",";
 
 			var sb = new StringBuilder(256);
-			sb.Append(rec.LogTime.ToString("dd/MM/yy", inv) + sep);                           // 0
-			sb.Append(rec.LogTime.ToString("HH:mm", inv) + sep);                              // 1
+			sb.Append(rec.LogTime.ToString("dd/MM/yy HH:mm", inv) + sep);                     // 0
+			sb.Append(new DateTimeOffset(rec.LogTime).ToUnixTimeSeconds() + sep);             // 1
 			sb.Append(rec.Temperature.ToString(Program.Cumulus.TempFormat, inv) + sep);       // 2
 			sb.Append(rec.Humidity.ToString() + sep);                                         // 3
 			sb.Append(rec.Dewpoint.ToString(Program.Cumulus.TempFormat, inv) + sep);          // 4
