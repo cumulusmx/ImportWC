@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 
 namespace ImportWC
@@ -17,6 +18,7 @@ namespace ImportWC
 		public static string WcConfigPress { get; set; } = string.Empty;
 		public static string WcConfigRain { get; set; } = string.Empty;
 
+		static readonly Regex TabSplit = new(@"\t+");
 
 		static int Main()
 		{
@@ -60,7 +62,7 @@ namespace ImportWC
 			Console.WriteLine();
 
 			// Find all the wlk files
-			// naming convention YYYY-MM.wlk, eg 2024-05.wlk
+			// naming convention: MM_WeatherCatData.cat
 			LogMessage("Searching for cat files");
 			Console.WriteLine("Searching for cat log files...");
 
@@ -171,6 +173,26 @@ namespace ImportWC
 					}
 				}
 
+				// Now try and find the corresponding hours file
+				// Find all the wlk files
+				// naming convention MM_WeatherCatData.cat.hrs
+				var hrFileName = Path.Combine(cat.DirectoryName!, month + "_WeatherCatData.cat.hrs");
+				LogMessage("Searching for corresponding hour file: " + month + "_WeatherCatData.cat.hrs");
+				Console.WriteLine($"Searching for corresponding hour file: {month + "_WeatherCatData.cat.hrs"}...");
+
+				if (File.Exists(hrFileName))
+				{
+					LogConsole($"Processing {year} {month + "_WeatherCatData.cat.hrs"}...", ConsoleColor.Gray);
+					LogMessage($"Processing {hrFileName}...");
+
+					UpdateSunshineFromHoursFile(hrFileName, year, month);
+				}
+				else
+				{
+					LogConsole($"Error {year} {month + "_WeatherCatData.cat.hrs"} file not found, skipping sunshine hours for this month", ConsoleColor.Red);
+					LogMessage($"Error {hrFileName} file not found, skipping sunshine hours for this month");
+				}
+
 				// Write out the log file
 				if (LogFile.RecordsCount > 0)
 				{
@@ -192,7 +214,78 @@ namespace ImportWC
 				}
 			}
 
+
 			return 0;
+		}
+
+		private static void UpdateSunshineFromHoursFile(string path, int year, int month)
+		{
+			// The WeatherCat hours file contains 270+ columns - There is no available header file
+			// Each data column is separated by one or more tab characters
+			// There is one file per month, contained in the year folder
+			// Naming convertion: [MonthNum]_WeatherCatData.cat.hrs
+			//                  eg. 8_WeatherCatData.cat.hrs
+			//
+			// Records
+			// 0 - Day of month
+			// 1 - Hour of day (0-23)
+			// ...
+			// 272 - Total sunsine hours for the hour
+
+			// Pre-index the LogFile Records for efficency
+			var index = new Dictionary<(int day, int hour), List<LogFileRec>>();
+
+			foreach (var kvp in LogFile.Records)
+			{
+				var t = kvp.Key;
+				var key = (t.Day, t.Hour);
+
+				if (!index.TryGetValue(key, out var list))
+				{
+					list = new List<LogFileRec>();
+					index[key] = list;
+				}
+
+				list.Add(kvp.Value);
+			}
+
+			double cumulative = 0;
+			int? currentDay = null;
+
+			foreach (var line in File.ReadLines(path))
+			{
+				if (string.IsNullOrWhiteSpace(line))
+					continue;
+
+				var cols = TabSplit.Split(line);
+
+				if (cols.Length <= 272)
+					continue; // malformed row
+
+				// Extract fields
+				int day = int.Parse(cols[0]);
+				int hour = int.Parse(cols[1]);
+
+				// Sunshine hours column (may be blank)
+				if (!double.TryParse(cols[272], out double hourlySunshine))
+					continue;
+
+				// Detect day change
+				if (currentDay == null || currentDay != day)
+				{
+					cumulative = 0;
+					currentDay = day;
+				}
+
+				// Add this hour's sunshine to the running total
+				cumulative += hourlySunshine;
+
+
+				// Build timestamp (assume local time)
+				var hourStamp = new DateTime(year, month, day, hour, 0, 0);
+				
+				LogFile.UpdateSunshineForHour(day, hour, cumulative, index);
+			}
 		}
 
 		public static void LogMessage(string message)

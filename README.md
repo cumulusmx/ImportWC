@@ -4,7 +4,7 @@ Import WeatherCat .cat log files into Cumulus MX
 ## About this program
 The ImportWC utility is a command line program written in .NET, so it will run on Windows or Linux. Under Linux you will have to use the dotnet runtime environment to execute the program.
 
-The utility will read your WeatherCat log files and create corresponding Cumulus MX monthly log files. It does not create day file entries. After importing the monthly log files you must run the CreateMissing utility to create the day file entires from the new monthly logs.
+The utility will read your WeatherCat log files and the "hourly" files and create corresponding Cumulus MX monthly log files. It does not create day file entries. After importing the monthly log files you must run the CreateMissing utility to create the day file entires from the new monthly logs.
 
 If your WeatherCat data files contain synthetic channels, channels 1-10 will be extracted and written to a Cumulus MX Custom log called "SythLogYYYYMM.txt". Each WC synthetic channel is mapped to the corresponding field number in the custom log file.
 

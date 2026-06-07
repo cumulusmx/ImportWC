@@ -6,11 +6,11 @@ namespace ImportWC
 {
 	static partial class LogFile
 	{
-		private static readonly SortedList<DateTime, LogFileRec> records = [];
+		public static readonly SortedList<DateTime, LogFileRec> Records = [];
 
-		public static int RecordsCount { get => records.Count; }
+		public static int RecordsCount { get => Records.Count; }
 
-		public static double LastRainCounter { get => records.Last().Value.RainfallCounter; }
+		public static double LastRainCounter { get => Records.Last().Value.RainfallCounter; }
 
 		private static double startOfDayRainCounter = -999;
 
@@ -19,7 +19,7 @@ namespace ImportWC
 
 		internal static void Initialise()
 		{
-			records.Clear();
+			Records.Clear();
 			LastTimeStamp = DateTime.MinValue;
 		}
 
@@ -32,10 +32,10 @@ namespace ImportWC
 
 			LastTimeStamp = rec.Timestamp;
 
-			if (!records.TryGetValue(rec.Timestamp, out var value))
+			if (!Records.TryGetValue(rec.Timestamp, out var value))
 			{
 				value = new LogFileRec() { LogTime = rec.Timestamp };
-				records.Add(rec.Timestamp, value);
+				Records.Add(rec.Timestamp, value);
 			}
 
 			value.Temperature = rec.OutsideTemp ?? 0;
@@ -119,16 +119,16 @@ namespace ImportWC
 
 		public static void WriteLogFile()
 		{
-			var logfilename = "data" + Path.DirectorySeparatorChar + GetLogFileName(records.First().Key);
+			var logfilename = "data" + Path.DirectorySeparatorChar + GetLogFileName(Records.First().Key);
 
-			if (records.Count == 0)
+			if (Records.Count == 0)
 			{
 				Program.LogMessage($"No records to write to {logfilename}!");
 				Program.LogConsole($"  No records to write to {logfilename}!", ConsoleColor.Red);
 				return;
 			}
 
-			Program.LogMessage($"Writing {records.Count} to {logfilename}");
+			Program.LogMessage($"Writing {Records.Count} to {logfilename}");
 			Program.LogConsole($"  Writing to {logfilename}", ConsoleColor.Gray);
 
 			// backup old log file
@@ -161,9 +161,9 @@ namespace ImportWC
 			{
 				using FileStream fs = new FileStream(logfilename, FileMode.Append, FileAccess.Write, FileShare.Read);
 				using StreamWriter file = new StreamWriter(fs);
-				Program.LogMessage($"{logfilename} opened for writing {records.Count} records");
+				Program.LogMessage($"{logfilename} opened for writing {Records.Count} records");
 
-				foreach (var rec in records)
+				foreach (var rec in Records)
 				{
 					var line = RecToCsv(rec);
 					if (null != line)
@@ -253,7 +253,18 @@ namespace ImportWC
 
 			return sb.ToString();
 		}
-		
+
+		public static void UpdateSunshineForHour(int day, int hour, double sunshine, Dictionary<(int day, int hour), List<LogFileRec>> index)
+		{
+			if (index.TryGetValue((day, hour), out var entries))
+			{
+				foreach (var entry in entries)
+				{
+					entry.SunshineHours = sunshine;
+				}
+			}
+		}
+
 		private static string GetLogFileName(DateTime thedate)
 		{
 			return  thedate.ToString("yyyyMM") + "log.txt";
