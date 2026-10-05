@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace ImportWC
 {
-	static class Program
+	static partial class Program
 	{
 		public static  Cumulus Cumulus { get; set; } = new Cumulus();
 		public static string Location { get; set; } = string.Empty;
@@ -18,7 +18,13 @@ namespace ImportWC
 		public static string WcConfigPress { get; set; } = string.Empty;
 		public static string WcConfigRain { get; set; } = string.Empty;
 
-		static readonly Regex TabSplit = new(@"\t+");
+		static readonly Regex TabSplit = TabSplitRegex();
+
+		public static double RainCounter = 0;
+		public static double RainToday = 0;
+
+		public static RainCounterAccumulator RainAccumulator { get; private set; } = new RainCounterAccumulator();
+
 
 		static int Main()
 		{
@@ -45,6 +51,8 @@ namespace ImportWC
 
 			// get the location of the exe - we will assume this is in the Cumulus root folder
 			Location = AppDomain.CurrentDomain.BaseDirectory;
+
+			RainAccumulator = new RainCounterAccumulator();
 
 			// Check meteo day
 			if (Cumulus.RolloverHour != 0)
@@ -80,11 +88,14 @@ namespace ImportWC
 			LogConsole($"Found {wcFiles.Length} cat log files", defConsoleColour);
 
 			// sort the file list
-			var wcList = wcFiles.OrderBy(f => f.FullName).ToList();
+			var wcList = wcFiles
+				.OrderBy(fi => ExtractYear(fi))
+				.ThenBy(fi => ExtractMonth(fi))
+				.ToList();
 
 			var year = 0;
+			var lastYear = 0;
 			var month = 0;
-			var rainCounter = 0.0;
 
 			foreach (var cat in wcList)
 			{
@@ -133,7 +144,14 @@ namespace ImportWC
 
 				LogMessage($"  {year} {cat.Name} contains {lines.Length} lines");
 
+
+				if (year != lastYear)
+				{
+					lastYear = year;
+				}
+
 				var started = false;
+				var fileVersion = 0;
 
 				foreach (var line in lines)
 				{
@@ -147,6 +165,7 @@ namespace ImportWC
 					{
 						if (!started)
 						{
+							fileVersion = int.Parse(line.Split(':')[1]);
 							started = true;
 							continue;
 						}
@@ -160,16 +179,19 @@ namespace ImportWC
 
 					var rec = new WeatherCatRecord(year, month, line);
 
-					LogFile.AddRecord(rec);
-
-					if (rec.HasExtraData)
+					if (rec.IsValid)
 					{
-						ExtraLogFile.AddRecord(rec);
-					}
+						LogFile.AddRecord(rec);
 
-					if (rec.HasSynthData)
-					{
-						CustomLogFile.AddRecord(rec);
+						if (rec.HasExtraData)
+						{
+							ExtraLogFile.AddRecord(rec);
+						}
+
+						if (rec.HasSynthData)
+						{
+							CustomLogFile.AddRecord(rec);
+						}
 					}
 				}
 
@@ -196,7 +218,6 @@ namespace ImportWC
 				// Write out the log file
 				if (LogFile.RecordsCount > 0)
 				{
-					rainCounter += LogFile.LastRainCounter;
 					LogFile.WriteLogFile();
 					LogFile.Initialise();
 				}
@@ -385,5 +406,45 @@ namespace ImportWC
 				Environment.Exit(1);
 			}
 		}
+
+		private static int ExtractYear(FileInfo fi)
+		{
+			return int.Parse(fi.Directory.Name);
+		}
+
+		private static int ExtractMonth(FileInfo fi)
+		{
+			var name = fi.Name;
+			var monthPart = name.Split('_')[0];
+			return int.Parse(monthPart);
+		}
+
+		public sealed class RainCounterAccumulator
+		{
+			public double? LastTotalRainfall { get; private set; }
+
+			// Tune this for your station resolution (e.g., 0.2 mm per tip)
+			// current has jumped by more than 20 mm/0.75 inch
+			private readonly double MaxPlausibleDelta = Cumulus.Units.Rain == 0 ? 20 : 0.75;
+
+			public void ProcessReading(double totalRainfall)
+			{
+				if (LastTotalRainfall is not null)
+				{
+					double delta = totalRainfall - LastTotalRainfall.Value;
+
+					bool plausible = delta >= 0 && delta <= MaxPlausibleDelta;
+
+					if (plausible)
+						Program.RainCounter += delta;
+				}
+
+				LastTotalRainfall = totalRainfall;
+			}
+		}
+
+
+		[GeneratedRegex(@"\t+")]
+		private static partial Regex TabSplitRegex();
 	}
 }

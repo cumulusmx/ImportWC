@@ -10,8 +10,6 @@ namespace ImportWC
 
 		public static int RecordsCount { get => Records.Count; }
 
-		public static double LastRainCounter { get => Records.Last().Value.RainfallCounter; }
-
 		private static double startOfDayRainCounter = -999;
 
 
@@ -25,9 +23,10 @@ namespace ImportWC
 
 		internal static void AddRecord(WeatherCatRecord rec)
 		{
-			if (!rec.RainYear.HasValue && LastTimeStamp.Date != rec.Timestamp.Date)
+			if (LastTimeStamp.Date != rec.Timestamp.Date)
 			{
-				startOfDayRainCounter = rec.RainDay ?? 0;
+				startOfDayRainCounter = Program.RainCounter;
+				Program.RainToday = 0;
 			}
 
 			LastTimeStamp = rec.Timestamp;
@@ -50,14 +49,20 @@ namespace ImportWC
 
 			if (rec.RainYear.HasValue)
 			{
-				value.RainfallToday = rec.RainDay ?? 0;
-				value.RainfallCounter = rec.RainYear ?? 0;
+				// Process the rainfall counter
+				Program.RainAccumulator.ProcessReading(rec.RainYear.Value);
 			}
 			else
 			{
-				value.RainfallToday = (rec.RainDay ?? 0) - startOfDayRainCounter;
-				value.RainfallCounter = rec.RainDay ?? 0;
+				// Process the rainfall counter
+				Program.RainAccumulator.ProcessReading(rec.TotalPrecipitation ?? Program.RainCounter);
 			}
+
+			value.RainfallToday = Program.RainCounter - startOfDayRainCounter;
+
+			if (value.RainfallToday < 0) value.RainfallToday = 0; // rounding errors
+
+			value.RainfallCounter = Program.RainCounter;
 
 			value.RainfallRate = rec.RainRate ?? 0;
 			value.RainSinceMidnight = value.RainfallToday;
@@ -232,7 +237,7 @@ namespace ImportWC
 			sb.Append(rec.RainfallRate.ToString(Program.Cumulus.RainFormat, inv) + sep);      // 8
 			sb.Append(rec.RainfallToday.ToString(Program.Cumulus.RainFormat, inv) + sep);     // 9
 			sb.Append(rec.Baro.ToString(Program.Cumulus.PressFormat, inv) + sep);             // 10
-			sb.Append(rec.RainfallCounter.ToString(Program.Cumulus.RainFormat, inv) + sep);   // 11
+			sb.Append(rec.RainfallCounter.ToString("F" + (Program.Cumulus.Units.RainDPlaces + 1), inv) + sep);   // 11
 			sb.Append(rec.InsideTemp.ToString(Program.Cumulus.TempFormat, inv) + sep);        // 12
 			sb.Append(rec.InsideHum.ToString() + sep);                                        // 13
 			sb.Append(rec.CurrentGust.ToString(Program.Cumulus.WindFormat, inv) + sep);       // 14
@@ -269,7 +274,6 @@ namespace ImportWC
 		{
 			return  thedate.ToString("yyyyMM") + "log.txt";
 		}
-
 	}
 
 	internal class LogFileRec

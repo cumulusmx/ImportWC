@@ -17,7 +17,7 @@ namespace ImportWC
 		public double? WindChill { get; private set; }
 		public double? WindGust { get; private set; }
 		public double? RainHour { get; private set; }
-		public double? RainDay { get; private set; }
+		public double? TotalPrecipitation { get; private set; }
 		public double? RainMonth { get; private set; }
 		public double? RainYear { get; set; }
 		public double? RainRate { get; private set; }
@@ -43,6 +43,7 @@ namespace ImportWC
 		public double?[] Synth { get; private set; } = new double?[10];
 
 
+		public bool IsValid { get; private set; } = true;
 		public bool HasExtraData { get; private set; }
 		public bool HasSynthData { get; private set; }
 
@@ -61,6 +62,16 @@ namespace ImportWC
 
 			var arr = entry.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
+			if (arr.Last() != "V:4")
+			{
+				var flds = entry.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+				Program.LogConsole("Invalid line " + flds[1] + " " + entry[^4..], ConsoleColor.Red);
+				Program.LogMessage("Invalid line " + flds[1] + " " + entry[^4..]);
+				IsValid = false;
+				return;
+			}
+
 			// ignore the first entry = record number
 			for (var i = 1; i < arr.Length; i++)
 			{
@@ -72,12 +83,53 @@ namespace ImportWC
 				{
 					Program.LogConsole($"Error at entry={arr[0]} field={i} year={year} month={month}: {ex.Message}", ConsoleColor.Red);
 					Program.LogMessage($"Error at entry={arr[0]} field={i} year={year} month={month}: {ex.Message}");
+					IsValid = false;
 				}
 			}
 		}
 
 
 		/*
+		 * VERS:3 files
+		 * 
+		 * t and V are not optional, all other fields are.
+		 * 
+		 * t is the day, hour and minute (2 digits each)
+		 * T is outside temperature
+		 * Ti is internal temperature
+		 * D is dew point
+		 * Pr is barometric pressure
+		 * W is wind speed
+		 * Wd is wind direction
+		 * Wc is wind chill
+		 * Wg is wind gust
+		 * Ph is hourly precipitation
+		 * P is total precipitation
+		 *				Pm NOT PRESENT
+		 *				Py NOT PRESENT
+		 * H is outside humidity
+		 * Hi is internal humidity
+		 * S is solar
+		 * U is UV
+		 * T1 to T8 is auxiliary temperatures
+		 * H1 to H8 are auxiliary humidity sensors
+		 * Sm1 to Sm4 is soil moisture
+		 * St1 to St4 is soil temperature
+		 * Lw1 to Lw4 is leaf wetness
+		 *				Lt1 to Lt4 NOT PRESENT
+		 *				Sy1 to Sy? NOT PRESENT
+		 *				CO21 to CO24 NOT PRESENT
+		 *				Ed NOT PRESENT
+		 *				Em NOT PRESENT
+		 *				Ey NOT PRESENT
+		 * C is current conditions (delimited by double quotes)
+		 * V is validation
+		 */
+
+
+		/*
+		 * VERS:4 files
+		 * 
 		 * t and V are not optional, all other fields are.
 		 *
 		 * t is the day, hour and minute (2 digits each)
@@ -210,10 +262,10 @@ namespace ImportWC
 					break;
 
 				case "P":
-					// P is total precipitation
+					// P is total precipitation for V3 files this is a running total, for V4 it is the daily total
 					if (double.TryParse(val, CultureInfo.InvariantCulture, out double p))
 					{
-						RainDay = DoRain(p);
+						TotalPrecipitation = DoRain(p);
 					}
 					break;
 
